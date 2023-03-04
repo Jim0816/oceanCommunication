@@ -15,12 +15,13 @@ import { get_date_detail, getLocalDateTime } from '../../utils/dateUtil'
 import { getAddress, bd_to_wgs, wgs_to_bd, draw_sector, draw_svg, draw_arrow , draw_arrow_and_sector} from '../../utils/mapUtil'
 
 const center_point = {lng: 109.1110623255866, lat: 21.02762360632489}
+// angle_1代表箭头的正北顺时针夹角，angle_2代表扇形夹角
 const data = [
-  {id: 1, name: '发射机A', type:'svg', show: false, icon: rador, lng: 114.37184038553724, lat: 30.537290784630013, time: '', location: '', angle: 0, size: 100},
-  {id: 2, name: '接收机B', type:'sector_arror', angle_1: 0, angle_2: 180, radius: 300, color: 'red', show: false, icon: acceptor, lng: 111.284791, lat: 30.697943, time: '', location: '', angle: 0, size: 50},
-  {id: 3, name: '接收天线B1', type:'sector_arror', angle_1: 30, angle_2: 80, radius: 300, color: 'blue', show: false, icon: triangle, lng: 115.927769, lat: 28.610584, time: '', location: '', angle: 0, size: 50},
-  {id: 4, name: '接收天线B2', type:'sector_arror', angle_1: 90, angle_2: 90, radius: 300, color: 'blue', show: false, icon: triangle, lng: 115.792664, lat: 28.572525, time: '', location: '', angle: 0, size: 50},
-  {id: 5, name: '接收天线B3', type:'sector_arror', angle_1: 120, angle_2: 120, radius: 300, color: 'blue', show: false, icon: triangle, lng: 115.923169, lat: 28.864969, time: '', location: '', angle: 0, size: 50}
+  {id: 1, name: '发射机A', type:'svg', show: false, icon: rador, lng: 109.1010623255866, lat: 21.01162360632489, time: '', location: '', angle: 0, size: 100},
+  {id: 2, name: '接收机B', type:'sector_arror', angle_1: 0, angle_2: 180, radius: 300, color: 'red', show: false, icon: acceptor, lng: 109.0810623255866, lat: 21.01162360632489, time: '', location: '', size: 50},
+  {id: 3, name: '接收天线B1', type:'sector_arror', angle_1: 30, angle_2: 80, radius: 300, color: 'blue', show: false, icon: triangle, lng: 109.0610623255866, lat: 21.01162360632489, time: '', location: '', size: 50},
+  {id: 4, name: '接收天线B2', type:'sector_arror', angle_1: 90, angle_2: 90, radius: 300, color: 'blue', show: false, icon: triangle, lng: 109.0610623255866, lat: 21.00162360632489, time: '', location: '', size: 50},
+  {id: 5, name: '接收天线B3', type:'sector_arror', angle_1: 120, angle_2: 120, radius: 300, color: 'blue', show: false, icon: triangle, lng: 109.0810623255866, lat: 21.00162360632489, time: '', location: '', size: 50}
 ]
 
 
@@ -63,7 +64,7 @@ export default class index extends Component {
         select: -1, // 选择的文件id
         map: {}, // 地图对象引用
         markers: [], // 页面暂存对象集合
-        showList: true,
+        showList: false,
         loading_index: -1,
         marker_objs: {}, // key: id, value: marker数组[即构成一个图形的所有marker对象]
         editObj: {
@@ -71,10 +72,11 @@ export default class index extends Component {
             name: "",
             lng: "",
             lat: "",
-            angle: "",
+            angle_1: "",//angle_1代表箭头的正北顺时针夹角，angle_2代表扇形夹角
+            angle_2: "",//angle_2代表扇形夹角
             time: "",
             location: ""
-        } //暂存marker编辑信息的临时对象
+        }, //暂存marker编辑信息的临时对象
     }
 
     render() {
@@ -203,6 +205,7 @@ export default class index extends Component {
                         </div>
 
                         <div id='map' className={launch.map}></div>
+                        <div className={launch.showListBtn} onClick={this.open_show_list}>></div>
                         {this.state.showList ?
                             (<div className={launch.showList}>
                                 <div className={launch.showList_close} onClick={this.close_show_list}>关闭</div>
@@ -222,12 +225,34 @@ export default class index extends Component {
                                 }
                             </div>) : null
                         }
+
+                        <div className={launch.infoWindow}>
+                            <label style={{lineHeight: '40px', color: 'white', fontSize: '18px', fontWeight: 'bold'}}>接收距离</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B1: 1930m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B2: 2500m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B3: 670m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>B1-B2: 1000m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>B2-B3: 2943m</label>
+                        </div>
                     </div>
                 </div>
 
 
                 <div className={launch.bottom}>
                     <Button type="primary" icon={<CloudSyncOutlined />} style={{ backgroundColor: "#428bca", marginTop: 10, marginLeft: 15 }} onClick={this.submitChange}>上传记录</Button>
+                    <div className={launch.bottomContent}>
+                        {
+                            editObj.id != '' ? (
+                                <span className={launch.bottomContentSpan} style={{ fontSize: '14px', lineHeight: '45px', color: 'gray'}}>
+                                        <label style={{color: 'black', fontWeight: 'bold'}}>{editObj.name}:</label>
+                                        <label>坐标(BD系列):[{editObj.lng}, {editObj.lat}]</label>
+                                        <label>箭头角度(正北顺时针):{editObj.angle_1}°</label>
+                                        <label>扇形角度(正北顺时针):{editObj.angle_2}°</label>
+                                        {/* <label>地址:广西壮族自治区北海市北部湾海域中部</label> */}
+                                </span>
+                            ) : null
+                        }
+                    </div>
                 </div>
             </div>
         )
@@ -256,10 +281,12 @@ export default class index extends Component {
         this.state.markers = data
 
         document.addEventListener('contextmenu', this._handleContextMenu);
+        
+
         // 初始化地图
         const map = new window.BMapGL.Map("map");// 创建地图实例 
         var point = new window.BMapGL.Point(center_point.lng, center_point.lat);  //  默认
-        map.centerAndZoom(point, 18);
+        map.centerAndZoom(point, 14);
         // 定位修改
         // var geolocation = new window.BMapGL.Geolocation();
         // geolocation.getCurrentPosition(function (r) {
@@ -282,8 +309,8 @@ export default class index extends Component {
         //         console.log('获取位置失败....')
         //     }
         // });
-
-        map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放    
+        //map.disableDragging()
+        map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
         var scaleCtrl = new window.BMapGL.ScaleControl();  // 添加比例尺控件
         map.addControl(scaleCtrl);
         var zoomCtrl = new window.BMapGL.ZoomControl();  // 添加缩放控件
@@ -313,6 +340,11 @@ export default class index extends Component {
         this.forceUpdate()
     }
 
+
+    open_show_list = () => {
+        this.state.showList = true
+        this.forceUpdate()
+    }
     close_show_list = () => {
         this.state.showList = false
         this.forceUpdate()
@@ -426,13 +458,12 @@ export default class index extends Component {
                     map.addOverlay(e)
                 });
 
-                console.log(photo)
-
                 // 绑定事件
                 let mainMarker = photo[0] // 一个图形可能由多个marker组成，此处默认选择第一个作为绑定对象
                 let key = item.name + "_" + id
                 mainMarker["key"] = key
-                mainMarker.addEventListener("dragend", this.editMarker); // 拖拽结束后显示编辑界面，进行位置信息校对
+                console.log(mainMarker)
+                mainMarker.addEventListener("click", this.selectMarker); // 点击marker后，设置为当前操作对象，然后等待地图选点更新位置
 
                 this.state.marker_objs[id] = photo
                 return false;
@@ -441,9 +472,22 @@ export default class index extends Component {
     }
 
 
-    // 恢复上一次推拽位置状态
+    // 恢复拖拽前位置
     onReset = () => {
         this.state.loading_index = -1
+        let {editObj, map, markers} = this.state
+        let theMarker = {}
+        for (let i = 0 ; i < markers.length ; i++){
+            if (markers[i].id == editObj.id){
+                theMarker = markers[i]
+                break
+            }
+        }
+
+        this.state.editObj.lng = theMarker.lng
+        this.state.editObj.lat = theMarker.lat
+        this.state.editObj.angle_1 = theMarker.angle_1
+        this.state.editObj.angle_2 = theMarker.angle_2
         this.forceUpdate()
     }
 
@@ -452,6 +496,56 @@ export default class index extends Component {
         this.state.loading_index = -1
         this.forceUpdate()
     };
+
+    // 点击绑定操作对象，右下方显示当前操作对象信息
+    selectMarker = (event) => {
+        let {markers, map} = this.state
+        let clickKey = event.currentTarget.key
+        let arr = clickKey.split("_")
+        let title = arr[0]
+        let id = arr[1]
+        this.state.editObj.name = title
+        this.state.editObj.id = id
+        let theMarker = {}
+        for (let i = 0 ; i < markers.length ; i++){
+            if (markers[i].id == id){
+                theMarker = markers[i]
+                break
+            }
+        }
+
+        this.state.editObj.lng = theMarker.lng
+        this.state.editObj.lat = theMarker.lat
+        this.state.editObj.angle_1 = theMarker.angle_1
+        this.state.editObj.angle_2 = theMarker.angle_2
+        map.setDefaultCursor("crosshair");
+
+        // 开始监听鼠标移动
+
+        // 选择所要操作的marker之后，将要监听用户下次点击的位置
+        map.addEventListener('mousemove', this.moveMarkerLocation);
+        map.addEventListener('dblclick', this.endMoveMarkerLocation);
+        this.forceUpdate()
+    }
+
+    // 用户在选定操作对象后，点击某个位置，marker将移动到该位置
+    moveMarkerLocation = (e) => {
+        //console.log('当前位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+        let {editObj} = this.state
+        editObj.lng = e.latlng.lng
+        editObj.lat = e.latlng.lat
+        this.forceUpdate()
+    }
+
+    endMoveMarkerLocation = (e) => {
+        let {map} = this.state
+        console.log('用户双击选择当前位置，结束鼠标移动监听事件')
+        map.setDefaultCursor("default");
+        map.removeEventListener('mousemove', this.moveMarkerLocation);
+        this.state.loading_index = 5
+        this.forceUpdate()
+    }
+
 
     // 拖拽结束，跳出编辑marker页面
     editMarker = (event) => {
@@ -499,7 +593,7 @@ export default class index extends Component {
                 //markers = draw_arrow(map, {lng: bd_location.lng, lat: bd_location.lat}, {lng: 111.305409, lat: 30.72216}, 5, 'red', 0.7)
                 break;
             case 'sector_arror':
-                // 绘制扇形和箭头组合图形 [测试通过]
+                // 绘制扇形和箭头组合图形 [测试通过] 以正北顺时针为标准，angle_1：箭头夹角，angle_2：扇形夹角
                 markers = draw_arrow_and_sector(map, {lng: bd_location.lng, lat: bd_location.lat}, item.radius, item.angle_1, item.angle_2, item.color, 'black', 0.15)
                 break;
             case 'svg':

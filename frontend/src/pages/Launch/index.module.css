@@ -60,6 +60,23 @@
     justify-content: space-around;
 }
 
+.showListBtn{
+    position: absolute;
+    left: 0;
+    top: 40%;
+    width: 15px;
+    height: 60px;
+    background-color: black;
+    opacity: 0.8;
+    z-index: 2;
+    overflow: auto;
+    color: white;
+    text-align: center;
+    font-weight: bolder;
+    line-height: 60px;
+    font-size: 16px;
+    cursor: pointer;
+}
 .showList{
     position: absolute;
     left: 0;
@@ -70,6 +87,22 @@
     opacity: 0.8;
     z-index: 2;
     overflow: auto;
+}
+
+.infoWindow{
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 200px;
+    height: 170px;
+    background-color: black;
+    opacity: 0.5;
+    z-index: 2;
+    overflow: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .showList_close{
@@ -118,11 +151,23 @@
     background-color: white;
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
 }
 
-.bottomSpan{
-    width: 240px;
-    height: 30px;
-    margin-top: 10px;
-    margin-left: 15px;
+.bottomContent{
+    float: right;
+    margin-top: 5px;
+    height: 40px;
 }
+
+.bottomContentSpan{
+    float: left;
+    margin-right: 10px;
+    width: calc(100% - 10px);
+    height: 100%;
+}
+
+.bottomContentSpan label{
+    margin-left: 10px;
+}
+

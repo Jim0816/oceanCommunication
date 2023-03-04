@@ -335,6 +335,7 @@ function draw_sector (map, sector_point, radius, angle_1, angle_2, color, opacit
         fillOpacity: opacity
     })
     //map.addOverlay(oval)
+    //oval.enableDragging()
     // // 文本内容
     // var text = temPoi[4]
     // onClick(text, oval) // 调鼠标用点击事件
