@@ -12,16 +12,16 @@ import store from '../../store/index';
 
 import { add, getList } from '../../api/launch'
 import { get_date_detail, getLocalDateTime } from '../../utils/dateUtil'
-import { getAddress, bd_to_wgs, wgs_to_bd, draw_sector, draw_svg, draw_arrow , draw_arrow_and_sector} from '../../utils/mapUtil'
+import { getDistance, bd_to_wgs, wgs_to_bd, draw_sector, draw_svg, draw_arrow , draw_arrow_and_sector} from '../../utils/mapUtil'
 
 const center_point = {lng: 109.1110623255866, lat: 21.02762360632489}
 // angle_1代表箭头的正北顺时针夹角，angle_2代表扇形夹角
 const data = [
-  {id: 1, name: '发射机A', type:'svg', show: false, icon: rador, lng: 109.1010623255866, lat: 21.01162360632489, time: '', location: '', angle: 0, size: 100},
-  {id: 2, name: '接收机B', type:'sector_arror', angle_1: 0, angle_2: 180, radius: 300, color: 'red', show: false, icon: acceptor, lng: 109.0810623255866, lat: 21.01162360632489, time: '', location: '', size: 50},
-  {id: 3, name: '接收天线B1', type:'sector_arror', angle_1: 30, angle_2: 80, radius: 300, color: 'blue', show: false, icon: triangle, lng: 109.0610623255866, lat: 21.01162360632489, time: '', location: '', size: 50},
-  {id: 4, name: '接收天线B2', type:'sector_arror', angle_1: 90, angle_2: 90, radius: 300, color: 'blue', show: false, icon: triangle, lng: 109.0610623255866, lat: 21.00162360632489, time: '', location: '', size: 50},
-  {id: 5, name: '接收天线B3', type:'sector_arror', angle_1: 120, angle_2: 120, radius: 300, color: 'blue', show: false, icon: triangle, lng: 109.0810623255866, lat: 21.00162360632489, time: '', location: '', size: 50}
+  {id: 1, name: '发射机A', code: 'a', type:'sector_arror', angle_1: 30, angle_2: 360, radius: 300, color: 'green', show: true, lng: 109.1010623255866, lat: 21.01162360632489, time: '', location: '', angle: 0, size: 100},
+  {id: 2, name: '接收机B', code: 'b', type:'sector_arror', angle_1: 30, angle_2: 180, radius: 300, color: 'red', show: true, lng: 109.0810623255866, lat: 21.01162360632489, time: '', location: '', size: 50},
+  {id: 3, name: '接收天线B1', code: 'b1', type:'sector_arror', angle_1: 30, angle_2: 80, radius: 300, color: 'blue', show: true, lng: 109.0610623255866, lat: 21.01162360632489,  time: '', location: '', size: 50},
+  {id: 4, name: '接收天线B2', code: 'b2', type:'sector_arror', angle_1: 90, angle_2: 90, radius: 300, color: 'blue', show: true,  lng: 109.0610623255866, lat: 21.00162360632489, time: '', location: '', size: 50},
+  {id: 5, name: '接收天线B3', code: 'b3', type:'sector_arror', angle_1: 120, angle_2: 120, radius: 300, color: 'blue', show: true,  lng: 109.0810623255866, lat: 21.00162360632489, time: '', location: '', size: 50}
 ]
 
 
@@ -69,6 +69,7 @@ export default class index extends Component {
         marker_objs: {}, // key: id, value: marker数组[即构成一个图形的所有marker对象]
         editObj: {
             id: "",
+            code: "",
             name: "",
             lng: "",
             lat: "",
@@ -77,10 +78,17 @@ export default class index extends Component {
             time: "",
             location: ""
         }, //暂存marker编辑信息的临时对象
+        distance: {
+            'a-b1': 0,
+            'a-b2': 0,
+            'a-b3': 0,
+            'b1-b2': 0,
+            'b2-b3': 0
+        }
     }
 
     render() {
-        let { editObj, markers, list, select, loading_index,} = this.state
+        let { editObj, markers, list, select, loading_index, distance} = this.state
         const tailLayout = {
             wrapperCol: {
               offset: 8,
@@ -127,7 +135,8 @@ export default class index extends Component {
                                     autoComplete="off"
                                 >
                                     <Form.Item
-                                        label="经度"
+                                        style={{marginLeft: '20px'}}
+                                        label="位置经度"
                                         name="lng"
                                         rules={[
                                             {
@@ -138,7 +147,7 @@ export default class index extends Component {
                                         >
                                         <InputNumber
                                             style={{
-                                            width: 280,
+                                            width: 250,
                                             }}
                                             min="0"
                                             max="300"
@@ -149,7 +158,8 @@ export default class index extends Component {
                                     </Form.Item>
 
                                     <Form.Item
-                                        label="纬度"
+                                        style={{marginLeft: '20px'}}
+                                        label="位置纬度"
                                         name="lat"
                                         rules={[
                                             {
@@ -160,7 +170,7 @@ export default class index extends Component {
                                         >
                                         <InputNumber
                                             style={{
-                                            width: 280,
+                                            width: 250,
                                             }}
                                             min="0"
                                             max="300"
@@ -171,8 +181,29 @@ export default class index extends Component {
                                     </Form.Item>
 
                                     <Form.Item
-                                        label="角度"
-                                        name="angle"
+                                        style={{marginLeft: '20px'}}
+                                        label="箭头角度"
+                                        name="angle_1"
+                                        rules={[
+                                            {
+                                            required: true,
+                                            message: '请输入正北顺时针方向夹角！',
+                                            },
+                                        ]}
+                                        >
+                                        <InputNumber
+                                            style={{width: 250,}}
+                                            min="0"
+                                            max="360"
+                                            step="1"
+                                            value={editObj.angle_1}
+                                            stringMode
+                                        />
+                                    </Form.Item>
+                                    <Form.Item
+                                        style={{marginLeft: '20px'}}
+                                        label="扇形角度"
+                                        name="angle_2"
                                         rules={[
                                             {
                                             required: true,
@@ -182,12 +213,12 @@ export default class index extends Component {
                                         >
                                         <InputNumber
                                             style={{
-                                            width: 280,
+                                            width: 250,
                                             }}
                                             min="0"
                                             max="360"
                                             step="1"
-                                            value={editObj.angle}
+                                            value={editObj.angle_2}
                                             stringMode
                                         />
                                     </Form.Item>
@@ -228,11 +259,11 @@ export default class index extends Component {
 
                         <div className={launch.infoWindow}>
                             <label style={{lineHeight: '40px', color: 'white', fontSize: '18px', fontWeight: 'bold'}}>接收距离</label>
-                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B1: 1930m</label>
-                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B2: 2500m</label>
-                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B3: 670m</label>
-                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>B1-B2: 1000m</label>
-                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>B2-B3: 2943m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B1: {distance['a-b1']}m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B2: {distance['a-b2']}m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>A-B3: {distance['a-b3']}m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>B1-B2: {distance['b1-b2']}m</label>
+                            <label style={{lineHeight: '24px', color: 'white', fontSize: '15px'}}>B2-B3: {distance['b2-b3']}m</label>
                         </div>
                     </div>
                 </div>
@@ -279,6 +310,8 @@ export default class index extends Component {
         this.state.list = res_test_data
         // 附近默认坐标点
         this.state.markers = data
+        this.computeDistanceWhenStop()
+
 
         document.addEventListener('contextmenu', this._handleContextMenu);
         
@@ -311,6 +344,7 @@ export default class index extends Component {
         // });
         //map.disableDragging()
         map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+        map.disableDoubleClickZoom(true)
         var scaleCtrl = new window.BMapGL.ScaleControl();  // 添加比例尺控件
         map.addControl(scaleCtrl);
         var zoomCtrl = new window.BMapGL.ZoomControl();  // 添加缩放控件
@@ -326,6 +360,11 @@ export default class index extends Component {
         }
 
         this.state.map = map
+
+        // 初始化显示所有marker
+        for (let i = 0 ; i < this.state.markers.length ; i++){
+            this.showMarker(this.state.markers[i].id)
+        }
         this.forceUpdate()
     }
 
@@ -394,21 +433,21 @@ export default class index extends Component {
         store.dispatch({ type: 'markers', new_markers })
     }
 
-    init_markers = (map) => {
-        let { markers } = this.state
-        for (let i = 0; i < markers.length; i++) {
-            let item = markers[i]
-            if (item.show) {
-                let photo = this.draw(item)
-                photo.forEach(function(e) {
-                    map.addOverlay(e)
-                });
-            }
-        }
-        store.dispatch({ type: 'markers', markers })
-    }
+    // init_markers = (map) => {
+    //     let { markers } = this.state
+    //     for (let i = 0; i < markers.length; i++) {
+    //         let item = markers[i]
+    //         if (item.show) {
+    //             let photo = this.draw(item)
+    //             photo.forEach(function(e) {
+    //                 map.addOverlay(e)
+    //             });
+    //         }
+    //     }
+    //     store.dispatch({ type: 'markers', markers })
+    // }
 
-    
+    // 点击左上角check，显示或者删除marker
     onChangeCheck = (e) => {
         let { markers } = this.state
         let id = e.target.id
@@ -453,26 +492,31 @@ export default class index extends Component {
                 //map.addOverlay(arr[1]);
                 //map.addOverlay(arr[2]);
                 // 绘制一类图形可能会返回多个marker元素
+                //console.log(item)
                 let photo = this.draw(item)
                 photo.forEach(function(e) {
                     map.addOverlay(e)
                 });
 
-                // 绑定事件
-                let mainMarker = photo[0] // 一个图形可能由多个marker组成，此处默认选择第一个作为绑定对象
-                let key = item.name + "_" + id
-                mainMarker["key"] = key
-                console.log(mainMarker)
-                mainMarker.addEventListener("click", this.selectMarker); // 点击marker后，设置为当前操作对象，然后等待地图选点更新位置
+                //console.log(photo)
+                if (photo != undefined && photo.length > 0){
+                    // 绑定事件
+                    let mainMarker = photo[0] // 一个图形可能由多个marker组成，此处默认选择第一个作为绑定对象
+                    let key = item.name + "_" + id
+                    mainMarker['key'] = key
+                    //console.log(mainMarker)
+                    mainMarker.addEventListener("click", this.selectMarker); // 点击marker后，设置为当前操作对象，然后等待地图选点更新位置
 
-                this.state.marker_objs[id] = photo
-                return false;
+                    this.state.marker_objs[id] = photo
+                }
+
+                this.forceUpdate()
             }
         }
     }
 
 
-    // 恢复拖拽前位置
+    // 恢复拖拽前位置状态信息
     onReset = () => {
         this.state.loading_index = -1
         let {editObj, map, markers} = this.state
@@ -488,12 +532,51 @@ export default class index extends Component {
         this.state.editObj.lat = theMarker.lat
         this.state.editObj.angle_1 = theMarker.angle_1
         this.state.editObj.angle_2 = theMarker.angle_2
+
+        // 更新距离[回到初始距离]
+        this.computeDistanceWhenStop()
         this.forceUpdate()
     }
 
+    // 用户点击确认后，更新前端缓存的当前marker状态信息（注意，还没有提交后台）
     onFinish = (values) => {
-        console.log('Success:', values);
         this.state.loading_index = -1
+        let {editObj, markers} = this.state
+        // 寻找当前marker
+        let index = -1
+        for (let i = 0 ; i < markers.length ; i++){
+            if (markers[i].id == editObj.id){
+                index = i
+                break
+            }
+        }
+
+        if (index != -1){
+            // 在缓存中更细当前marker信息
+            editObj.lng = values.lng
+            editObj.lat = values.lat
+            editObj.angle_1 = values.angle_1
+            editObj.angle_2 = values.angle_2
+
+            markers[index].lng = Number(values.lng)
+            markers[index].lat = Number(values.lat)
+            markers[index].angle_1 = Number(values.angle_1)
+            markers[index].angle_2 = Number(values.angle_2)
+            
+            // 修改完数据后，需要重新绘制该图形
+            this.removeMarker(markers[index].id) // 先移除原来marker
+            this.showMarker(markers[index].id) // 绘制新marker
+
+            // 更新距离
+            this.computeDistanceWhenStop()
+
+
+        }else{
+            // 没有找到当前marker
+            console.log('缓存中不存在当前marker状态信息')
+            return
+        }
+        console.log('更新后缓存：', markers)
         this.forceUpdate()
     };
 
@@ -504,6 +587,7 @@ export default class index extends Component {
         let arr = clickKey.split("_")
         let title = arr[0]
         let id = arr[1]
+        
         this.state.editObj.name = title
         this.state.editObj.id = id
         let theMarker = {}
@@ -514,6 +598,7 @@ export default class index extends Component {
             }
         }
 
+        this.state.editObj.code = theMarker.code
         this.state.editObj.lng = theMarker.lng
         this.state.editObj.lat = theMarker.lat
         this.state.editObj.angle_1 = theMarker.angle_1
@@ -534,45 +619,167 @@ export default class index extends Component {
         let {editObj} = this.state
         editObj.lng = e.latlng.lng
         editObj.lat = e.latlng.lat
+        this.computeDistanceWhenMove()
         this.forceUpdate()
     }
 
     endMoveMarkerLocation = (e) => {
-        let {map} = this.state
+        let {map, editObj} = this.state
+        console.log(map.getDefaultCursor())
         console.log('用户双击选择当前位置，结束鼠标移动监听事件')
         map.setDefaultCursor("default");
         map.removeEventListener('mousemove', this.moveMarkerLocation);
         this.state.loading_index = 5
-        this.forceUpdate()
-    }
-
-
-    // 拖拽结束，跳出编辑marker页面
-    editMarker = (event) => {
-        let {markers} = this.state
-        let clickKey = event.currentTarget.key
-        let arr = clickKey.split("_")
-        let title = arr[0]
-        let id = arr[1]
-        this.state.editObj.name = title
-        this.state.editObj.id = id
-        this.state.loading_index = 5
-        let theMarker = {}
-        for (let i = 0 ; i < markers.length ; i++){
-            if (markers[i].id == id){
-                theMarker = markers[i]
-                break
-            }
-        }
-
+        
         this.formRef.current.setFieldsValue({
-            lng: event.latLng.lng,//拖拽结束时的经度
-            lat: event.latLng.lat,//拖拽结束时的纬度
-            angle: theMarker.angle
+            lng: editObj.lng,//拖拽结束时的经度
+            lat: editObj.lat,//拖拽结束时的纬度
+            angle_1: editObj.angle_1,
+            angle_2: editObj.angle_2
         });
 
         this.forceUpdate()
     }
+
+    // 计算五组坐标之间的实时距离【缓存数据确定时：初始化，编辑结束】
+    computeDistanceWhenStop = () => {
+        let { markers} = this.state
+        let a, b1, b2, b3
+        let ab1, ab2, ab3, b1b2, b2b3
+
+        for (let i = 0 ; i < markers.length ; i ++){
+            let code = markers[i].code
+            if (code == 'a'){
+                a =  markers[i]
+            }else if (code == 'b1'){
+                b1 =  markers[i]
+            }else if (code == 'b2'){
+                b2 =  markers[i]
+            }else if (code == 'b3'){
+                b3 =  markers[i]
+            }
+        }
+
+        ab1 = getDistance( a.lat, a.lng, b1.lat, b1.lng)
+        ab2 = getDistance( a.lat, a.lng, b2.lat, b2.lng)
+        ab3 = getDistance( a.lat, a.lng, b3.lat, b3.lng)
+        b1b2 = getDistance( b1.lat, b1.lng, b2.lat, b2.lng)
+        b2b3 = getDistance( b2.lat, b2.lng, b3.lat, b3.lng)
+
+        this.state.distance = {
+            'a-b1': ab1,
+            'a-b2': ab2,
+            'a-b3': ab3,
+            'b1-b2': b1b2,
+            'b2-b3': b2b3
+        }
+
+
+    }
+
+    // 计算五组坐标之间的实时距离【移动鼠标时】
+    computeDistanceWhenMove = () => {
+        let {editObj, markers} = this.state
+        let a, b1, b2, b3
+        let ab1, ab2, ab3, b1b2, b2b3
+
+        for (let i = 0 ; i < markers.length ; i ++){
+            let code = markers[i].code
+            if (code == 'a'){
+                a =  markers[i]
+            }else if (code == 'b1'){
+                b1 =  markers[i]
+            }else if (code == 'b2'){
+                b2 =  markers[i]
+            }else if (code == 'b3'){
+                b3 =  markers[i]
+            }
+        }
+
+        switch (editObj.code){
+            case 'a':
+                // 移动发射机A
+                ab1 = getDistance( editObj.lat, editObj.lng, b1.lat, b1.lng)
+                ab2 = getDistance( editObj.lat, editObj.lng, b2.lat, b2.lng)
+                ab3 = getDistance( editObj.lat, editObj.lng, b3.lat, b3.lng)
+                this.state.distance = {
+                    'a-b1': ab1,
+                    'a-b2': ab2,
+                    'a-b3': ab3,
+                    'b1-b2': this.state.distance['b1b2'],
+                    'b2-b3': this.state.distance['b2b3']
+                }
+                break;
+            case 'b1':
+                // 移动接收天线B1
+                ab1 = getDistance( editObj.lat, editObj.lng, a.lat, a.lng)
+                b1b2 = getDistance( editObj.lat, editObj.lng, b2.lat, b2.lng)
+                this.state.distance = {
+                    'a-b1': ab1,
+                    'a-b2': this.state.distance['a-b2'],
+                    'a-b3': this.state.distance['a-b3'],
+                    'b1-b2': b1b2,
+                    'b2-b3': this.state.distance['b2-b3']
+                }
+                break;
+            case 'b2':
+                // 移动接收天线B2
+                ab2 = getDistance( editObj.lat, editObj.lng, a.lat, a.lng)
+                b1b2 = getDistance( editObj.lat, editObj.lng, b1.lat, b1.lng)
+                b2b3 = getDistance( editObj.lat, editObj.lng, b3.lat, b3.lng)
+                this.state.distance = {
+                    'a-b1': this.state.distance['a-b1'],
+                    'a-b2': ab2,
+                    'a-b3': this.state.distance['a-b3'],
+                    'b1-b2': b1b2,
+                    'b2-b3': b2b3
+                }
+                break;
+            case 'b3':
+                // 移动接收天线B3
+                b2b3 = b2b3 = getDistance( editObj.lat, editObj.lng, b2.lat, b2.lng)
+                this.state.distance = {
+                    'a-b1': this.state.distance['a-b1'],
+                    'a-b2': this.state.distance['a-b2'],
+                    'a-b3': this.state.distance['a-b3'],
+                    'b1-b2': this.state.distance['b1-b2'],
+                    'b2-b3': b2b3
+                }
+                break;
+            default:
+                break;
+        }
+
+        //this.forceUpdate()
+    }
+
+
+    // 拖拽结束，跳出编辑marker页面
+    // editMarker = (event) => {
+    //     let {markers} = this.state
+    //     let clickKey = event.currentTarget.key
+    //     let arr = clickKey.split("_")
+    //     let title = arr[0]
+    //     let id = arr[1]
+    //     this.state.editObj.name = title
+    //     this.state.editObj.id = id
+    //     this.state.loading_index = 5
+    //     let theMarker = {}
+    //     for (let i = 0 ; i < markers.length ; i++){
+    //         if (markers[i].id == id){
+    //             theMarker = markers[i]
+    //             break
+    //         }
+    //     }
+
+    //     this.formRef.current.setFieldsValue({
+    //         lng: event.latLng.lng,//拖拽结束时的经度
+    //         lat: event.latLng.lat,//拖拽结束时的纬度
+    //         angle: theMarker.angle
+    //     });
+
+    //     this.forceUpdate()
+    // }
 
     // 绘制图形 [注意：传入绘制的坐标必须为百度坐标系]
     draw = (item) => {
@@ -580,8 +787,11 @@ export default class index extends Component {
         var markers = []
         var type = item.type
         // 数据中存储的坐标为wgs坐标，需要转换为bd坐标，渲染在百度地图
-        var bd_location = wgs_to_bd(item.lng, item.lat)
-        console.log(bd_location)
+        //var bd_location = wgs_to_bd(item.lng, item.lat)
+
+        console.log(item)
+        
+        var bd_location = {lng: item.lng, lat: item.lat}
 
         switch (type){
             case 'sector':
@@ -611,14 +821,10 @@ export default class index extends Component {
     removeMarker = (marker_id) => {
         let { map, marker_objs } = this.state
         let photo_markers = marker_objs[marker_id]
-        // 1.先清楚地图上这个图形下的所有marker
-        photo_markers.forEach(function(marker){
-            map.removeOverlay(marker)
+        //清理地图上这个marker下所有控件
+        photo_markers.forEach(function(item){
+            map.removeOverlay(item)
         })
-
-        // 2.更新缓存映射数据
-        marker_objs[marker_id] = []
-        this.state.marker_objs = marker_objs
     }
 
 
@@ -638,8 +844,11 @@ export default class index extends Component {
         let { markers } = this.state
         // 此时markers内部的坐标全部为wgs坐标
         //console.log(markers)
+
+        console.log('即将提交的数据: ', markers)
+
         let data = this.formatData(markers)
-        console.log('提交前数据: ', data)
+        //console.log('提交前数据: ', data)
 
         add(data).then(
             res => {

@@ -351,7 +351,7 @@ function draw_sector (map, sector_point, radius, angle_1, angle_2, color, opacit
      * @param angleValue 箭头与直线之间的角度 一般是Math.PI/7
      */
  function addArrow(map, polyline, length, angleValue, color, size, opacity){ //绘制箭头的函数
-    console.log(polyline)
+    //console.log(polyline)
     var linePoint = polyline.getPath();//线的坐标串
     var arrowCount = linePoint.length;
     for(var i = 1 ; i < arrowCount; i++){ //在拐点处绘制箭头

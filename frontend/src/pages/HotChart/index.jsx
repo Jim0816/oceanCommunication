@@ -45,6 +45,8 @@ export default class index extends Component {
   analyse = () => {
     let { form, player, interval } = this.state
     // 根据用户输入去获取后端数据
+
+    console.log(form)
     this.getData(form.start_time, form.end_time).then(res => {
       console.log(res)
       // 将后端返回数据存入本页state
