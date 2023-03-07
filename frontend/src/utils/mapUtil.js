@@ -481,6 +481,50 @@ function draw_svg(bd_location, icon, size, data, angle){
     return [sector, arrow[0], arrow[1]]
 }
 
+//度  ->  度°分′秒″
+function ToDegrees(val) {
+    if (typeof (val) == "undefined" || val == "") {
+        return "";
+    }
+    val = val + ""
+    var i = val.indexOf('.');
+    var strDu = i < 0 ? val : val.substring(0, i);//获取度
+    var strFen = 0;
+    var strMiao = 0;
+    if (i > 0) {
+        var strFen = "0" + val.substring(i);
+        strFen = strFen * 60 + "";
+        i = strFen.indexOf('.');
+        if (i > 0) {
+            strMiao = "0" + strFen.substring(i);
+            strFen = strFen.substring(0, i);//获取分
+            strMiao = strMiao * 60 + "";
+            i = strMiao.indexOf('.');
+            console.log(strMiao)
+            //strMiao = strMiao.substring(0, i + 4);//取到小数点后面三位
+            //console.log(strMiao)
+            //strMiao = parseFloat(strMiao).toFixed(2);//精确小数点后面两位
+        }
+    }
+    return strDu + "," + strFen + "," + strMiao;
+}
+
+//度°分′秒″  ->  度
+function ToDigital(strDu, strFen, strMiao, len) {
+    len = (len > 6 || typeof (len) == "undefined") ? len : 6;//精确到小数点后最多六位   
+    strDu = (typeof (strDu) == "undefined" || strDu == "") ? 0 : parseFloat(strDu);
+    strFen = (typeof (strFen) == "undefined" || strFen == "") ? 0 : parseFloat(strFen) / 60;
+    strMiao = (typeof (strMiao) == "undefined" || strMiao == "") ? 0 : parseFloat(strMiao) / 3600;
+    var digital = strDu + strFen + strMiao;
+
+    if (digital == 0) {
+        return "";
+    } else {
+        return digital.toFixed(len);
+    }
+}
+
+
 
 module.exports = {
     bd_decrypt_To_gcj : bd_decrypt_To_gcj ,
@@ -489,6 +533,8 @@ module.exports = {
     getAddress: getAddress,
     bd_to_wgs: bd_to_wgs,
     wgs_to_bd: wgs_to_bd,
+    ToDigital: ToDigital,
+    ToDegrees: ToDegrees,
     draw_sector: draw_sector,
     draw_svg: draw_svg,
     draw_arrow: draw_arrow,

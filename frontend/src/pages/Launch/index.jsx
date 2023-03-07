@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 
-import { Checkbox, Form, message, Input, InputNumber, Button, Alert, Spin, FormInstance } from 'antd';
-import { CloudSyncOutlined } from '@ant-design/icons';
+import { Checkbox, Form, message, Input, InputNumber, Button} from 'antd';
+import { CloudSyncOutlined, SwapOutlined} from '@ant-design/icons';
 import triangle from '../../asserts/photo/arrow_black.png'
 import acceptor from '../../asserts/photo/arrow_red.png'
 import rador from '../../asserts/photo/rador2.png'
@@ -12,9 +12,9 @@ import store from '../../store/index';
 
 import { add, getList } from '../../api/launch'
 import { get_date_detail, getLocalDateTime } from '../../utils/dateUtil'
-import { getDistance, bd_to_wgs, wgs_to_bd, draw_sector, draw_svg, draw_arrow , draw_arrow_and_sector} from '../../utils/mapUtil'
+import { getDistance, bd_to_wgs, wgs_to_bd, ToDigital, ToDegrees, draw_sector, draw_svg, draw_arrow , draw_arrow_and_sector} from '../../utils/mapUtil'
 
-const center_point = {lng: 109.1110623255866, lat: 21.02762360632489}
+const center_point = {lng: 109.111062, lat: 21.02762360632489}
 // angle_1代表箭头的正北顺时针夹角，angle_2代表扇形夹角
 const data = [
   {id: 1, name: '发射机A', code: 'a', type:'sector_arror', angle_1: 30, angle_2: 360, radius: 300, color: 'green', show: true, lng: 109.1010623255866, lat: 21.01162360632489, time: '', location: '', angle: 0, size: 100},
@@ -30,13 +30,7 @@ const res_test_data = [
         "_id": 1,
         "filename": "实时数据_20202002020202",
         "time": "2022:0601 13:00:00",
-        "content": []
-    },
-    {
-        "_id": 2,
-        "filename": "实时数据_20202002020202",
-        "time": "2022:0601 13:00:00",
-        "content": []
+        "content": data
     }
 ]
 
@@ -84,7 +78,8 @@ export default class index extends Component {
             'a-b3': 0,
             'b1-b2': 0,
             'b2-b3': 0
-        }
+        },
+        input_mode: 0, // 0表示经纬度坐标格式，1表示度分秒格式
     }
 
     render() {
@@ -115,124 +110,328 @@ export default class index extends Component {
                         {/* 编辑marker的位置状态信息 */}
                         <div className={launch.loading} style={{ 'zIndex': loading_index }}>
                             <div className={launch.loading_top}>{editObj.name}</div>
-                            <div className={launch.loading_center}>
-                                <Form
-                                    name="basic"
-                                    labelCol={{
-                                    span: 5,
-                                    }}
-                                    wrapperCol={{
-                                    span: 16,
-                                    }}
-                                    style={{
-                                    maxWidth: 600,
-                                    }}
-                                    initialValues={{
-                                    remember: true,
-                                    }}
-                                    ref={this.formRef}
-                                    onFinish={this.onFinish}
-                                    autoComplete="off"
-                                >
-                                    <Form.Item
-                                        style={{marginLeft: '20px'}}
-                                        label="位置经度"
-                                        name="lng"
-                                        rules={[
-                                            {
-                                            required: true,
-                                            message: '请输入当前位置的经度!',
-                                            },
-                                        ]}
-                                        >
-                                        <InputNumber
-                                            style={{
-                                            width: 250,
-                                            }}
-                                            min="0"
-                                            max="300"
-                                            step="0.00000000001"
-                                            value={editObj.lng}
-                                            stringMode
-                                        />
-                                    </Form.Item>
-
-                                    <Form.Item
-                                        style={{marginLeft: '20px'}}
-                                        label="位置纬度"
-                                        name="lat"
-                                        rules={[
-                                            {
-                                            required: true,
-                                            message: '请输入当前位置的纬度!',
-                                            },
-                                        ]}
-                                        >
-                                        <InputNumber
-                                            style={{
-                                            width: 250,
-                                            }}
-                                            min="0"
-                                            max="300"
-                                            step="0.00000000001"
-                                            value={editObj.lat}
-                                            stringMode
-                                        />
-                                    </Form.Item>
-
-                                    <Form.Item
-                                        style={{marginLeft: '20px'}}
-                                        label="箭头角度"
-                                        name="angle_1"
-                                        rules={[
-                                            {
-                                            required: true,
-                                            message: '请输入正北顺时针方向夹角！',
-                                            },
-                                        ]}
-                                        >
-                                        <InputNumber
-                                            style={{width: 250,}}
-                                            min="0"
-                                            max="360"
-                                            step="1"
-                                            value={editObj.angle_1}
-                                            stringMode
-                                        />
-                                    </Form.Item>
-                                    <Form.Item
-                                        style={{marginLeft: '20px'}}
-                                        label="扇形角度"
-                                        name="angle_2"
-                                        rules={[
-                                            {
-                                            required: true,
-                                            message: '请输入正北顺时针方向夹角！',
-                                            },
-                                        ]}
-                                        >
-                                        <InputNumber
-                                            style={{
-                                            width: 250,
-                                            }}
-                                            min="0"
-                                            max="360"
-                                            step="1"
-                                            value={editObj.angle_2}
-                                            stringMode
-                                        />
-                                    </Form.Item>
-                                    <Form.Item {...tailLayout}>
-                                        <Button type="primary" htmlType="submit">确认</Button>
-                                        <Button htmlType="button" onClick={this.onReset}>返回</Button>
-                                    </Form.Item>
-
-                                </Form>
+                            <div className={launch.loading_switch}>
+                            <Button style={{float: 'right'}} type="primary" icon={<SwapOutlined />} size="small" onClick={this.switch_input_mode}>切换</Button>
                             </div>
-                            {/* <div className={launch.loading_bottom}>
-                                <Button type="primary" onClick={this.cancelmMarker}>返回</Button>
-                                <Button type="primary" onClick={this.confirmMarker}>确认</Button>
-                            </div> */}
+                            
+
+                            <div className={launch.loading_center}>
+                                {this.state.input_mode == 1 ? (
+                                    <Form
+                                        name="basic"
+                                        labelCol={{
+                                        span: 5,
+                                        }}
+                                        wrapperCol={{
+                                        span: 16,
+                                        }}
+                                        style={{
+                                        maxWidth: 600,
+                                        }}
+                                        initialValues={{
+                                        remember: true,
+                                        }}
+                                        ref={this.formRef}
+                                        onFinish={this.onFinish}
+                                        autoComplete="off">
+
+                                        {/* 经度：度分秒输入格式 */}
+                                        <Form.Item style={{marginLeft: '20px', height: '20px'}} label="位置经度">
+                                            {/* 度 */}
+                                            <Form.Item
+                                                name="lng_du"
+                                                help=""
+                                                style={{
+                                                    display: 'inline-block',
+                                                    width: '60px',
+                                                }}>
+                                                <InputNumber
+                                                    style={{
+                                                    width: 60,
+                                                    }}
+                                                    min="0"
+                                                    max="360"
+                                                    step="1"
+                                                    stringMode
+                                                />
+                                            </Form.Item>
+                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>度</span>
+
+                                            {/* 分 */}
+                                            <Form.Item
+                                                name="lng_fen"
+                                                help=""
+                                                style={{
+                                                display: 'inline-block',
+                                                width: '60px',
+                                                }}>
+                                                <InputNumber
+                                                    style={{
+                                                    width: 60,
+                                                    }}
+                                                    min="0"
+                                                    max="360"
+                                                    step="1"
+                                                    stringMode/>
+                                            </Form.Item>
+                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>分</span>
+
+                                            {/* 秒 */}
+                                            <Form.Item
+                                                name="lng_miao"
+                                                help=""
+                                                style={{
+                                                display: 'inline-block',
+                                                width: '60px',
+                                                }}>
+                                                <InputNumber
+                                                    style={{
+                                                    width: 60,
+                                                    }}
+                                                    min="0"
+                                                    max="360"
+                                                    step="1"
+                                                    stringMode/>
+                                            </Form.Item>
+                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>秒</span>
+                                        </Form.Item>
+
+                                        {/* 纬度：度分秒输入格式 */}
+                                        <Form.Item style={{marginLeft: '20px', height: '20px'}} label="位置经度">
+                                            {/* 度 */}
+                                            <Form.Item
+                                                name="lat_du"
+                                                help=""
+                                                style={{
+                                                    display: 'inline-block',
+                                                    width: '60px',
+                                                }}>
+                                                <InputNumber
+                                                    style={{
+                                                    width: 60,
+                                                    }}
+                                                    min="0"
+                                                    max="360"
+                                                    step="1"
+                                                    stringMode
+                                                />
+                                            </Form.Item>
+                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>度</span>
+
+                                            {/* 分 */}
+                                            <Form.Item
+                                                name="lat_fen"
+                                                help=""
+                                                style={{
+                                                display: 'inline-block',
+                                                width: '60px',
+                                                }}>
+                                                <InputNumber
+                                                    style={{
+                                                    width: 60,
+                                                    }}
+                                                    min="0"
+                                                    max="360"
+                                                    step="1"
+                                                    stringMode/>
+                                            </Form.Item>
+                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>分</span>
+
+                                            {/* 秒 */}
+                                            <Form.Item
+                                                name="lat_miao"
+                                                help=""
+                                                style={{
+                                                display: 'inline-block',
+                                                width: '60px',
+                                                }}>
+                                                <InputNumber
+                                                    style={{
+                                                    width: 60,
+                                                    }}
+                                                    min="0"
+                                                    max="360"
+                                                    step="1"
+                                                    stringMode/>
+                                            </Form.Item>
+                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>秒</span>
+                                        </Form.Item>
+
+                                        {/*  箭头角度 */}
+                                        <Form.Item
+                                            style={{marginLeft: '20px', height: '20px'}}
+                                            label="箭头角度"
+                                            name="angle_1"
+                                            rules={[
+                                                {
+                                                required: true,
+                                                message: '请输入正北顺时针方向夹角！',
+                                                },
+                                            ]}
+                                            >
+                                            <InputNumber
+                                                style={{width: 240,}}
+                                                min="0"
+                                                max="360"
+                                                step="1"
+                                                value={editObj.angle_1}
+                                                stringMode
+                                            />
+                                        </Form.Item>
+
+                                        {/*  扇形角度 */}
+                                        <Form.Item
+                                            style={{marginLeft: '20px', height: '20px'}}
+                                            label="扇形角度"
+                                            name="angle_2"
+                                            rules={[
+                                                {
+                                                required: true,
+                                                message: '请输入正北顺时针方向夹角！',
+                                                },
+                                            ]}
+                                            >
+                                            <InputNumber
+                                                style={{
+                                                width: 240,
+                                                }}
+                                                min="0"
+                                                max="360"
+                                                step="1"
+                                                value={editObj.angle_2}
+                                                stringMode
+                                            />
+                                        </Form.Item>
+
+                                        {/*  底部按钮 */}
+                                        <Form.Item {...tailLayout}>
+                                            <Button type="primary" htmlType="submit">确认</Button>
+                                            <Button htmlType="button" onClick={this.onReset}>返回</Button>
+                                        </Form.Item>
+                                    </Form>
+                                ) : (
+                                    <Form
+                                        name="basic"
+                                        labelCol={{
+                                        span: 5,
+                                        }}
+                                        wrapperCol={{
+                                        span: 16,
+                                        }}
+                                        style={{
+                                        maxWidth: 600,
+                                        }}
+                                        initialValues={{
+                                        remember: true,
+                                        }}
+                                        ref={this.formRef}
+                                        onFinish={this.onFinish}
+                                        autoComplete="off">
+                                
+
+                                        {/*  位置经度 */}
+                                        <Form.Item
+                                            style={{marginLeft: '20px', height: '20px'}}
+                                            label="位置经度"
+                                            name="lng"
+                                            rules={[
+                                                {
+                                                required: true,
+                                                message: '请输入当前位置的经度!',
+                                                },
+                                            ]}
+                                            >
+                                            <InputNumber
+                                                style={{
+                                                width: 250,
+                                                }}
+                                                min="0"
+                                                max="300"
+                                                step="0.00000000001"
+                                                value={editObj.lng}
+                                                stringMode
+                                            />
+                                        </Form.Item>
+
+                                        {/*  位置纬度 */}
+                                        <Form.Item
+                                            style={{marginLeft: '20px', height: '20px'}}
+                                            label="位置纬度"
+                                            name="lat"
+                                            rules={[
+                                                {
+                                                required: true,
+                                                message: '请输入当前位置的经度!',
+                                                },
+                                            ]}
+                                            >
+                                            <InputNumber
+                                                style={{
+                                                width: 250,
+                                                }}
+                                                min="0"
+                                                max="300"
+                                                step="0.00000000001"
+                                                value={editObj.lat}
+                                                stringMode
+                                            />
+                                        </Form.Item>
+
+                                        {/*  箭头角度 */}
+                                        <Form.Item
+                                            style={{marginLeft: '20px', height: '20px'}}
+                                            label="箭头角度"
+                                            name="angle_1"
+                                            rules={[
+                                                {
+                                                required: true,
+                                                message: '请输入正北顺时针方向夹角！',
+                                                },
+                                            ]}
+                                            >
+                                            <InputNumber
+                                                style={{width: 240,}}
+                                                min="0"
+                                                max="360"
+                                                step="1"
+                                                value={editObj.angle_1}
+                                                stringMode
+                                            />
+                                        </Form.Item>
+
+                                        {/*  扇形角度 */}
+                                        <Form.Item
+                                            style={{marginLeft: '20px', height: '20px'}}
+                                            label="扇形角度"
+                                            name="angle_2"
+                                            rules={[
+                                                {
+                                                required: true,
+                                                message: '请输入正北顺时针方向夹角！',
+                                                },
+                                            ]}
+                                            >
+                                            <InputNumber
+                                                style={{
+                                                width: 240,
+                                                }}
+                                                min="0"
+                                                max="360"
+                                                step="1"
+                                                value={editObj.angle_2}
+                                                stringMode
+                                            />
+                                        </Form.Item>
+
+                                        {/*  底部按钮 */}
+                                        <Form.Item {...tailLayout}>
+                                            <Button type="primary" htmlType="submit">确认</Button>
+                                            <Button htmlType="button" onClick={this.onReset}>返回</Button>
+                                        </Form.Item>
+                                    </Form>
+                                )
+                                }
+                            </div>
                         </div>
 
                         <div id='map' className={launch.map}></div>
@@ -290,27 +489,12 @@ export default class index extends Component {
     }
 
     async componentDidMount() {
-        var page_state = this.state
-        var that = this
-        //this.adjustCenterSize()
-
-        // 初始化数据
-        // await getList().then(
-        //     res => {
-        //         console.log(res)
-        //         // 里面的坐标为wgs坐标，渲染时再转换
-        //         this.state.list = res
-        //     }
-        // ).catch(
-        //     err => {
-        //         message.error('数据加载失败')
-        //         console.log(err)
-        //     }
-        // )
-        this.state.list = res_test_data
+       
+        this.init_data()
+        
         // 附近默认坐标点
-        this.state.markers = data
-        this.computeDistanceWhenStop()
+        //this.state.markers = data
+        //this.computeDistanceWhenStop()
 
 
         document.addEventListener('contextmenu', this._handleContextMenu);
@@ -362,9 +546,9 @@ export default class index extends Component {
         this.state.map = map
 
         // 初始化显示所有marker
-        for (let i = 0 ; i < this.state.markers.length ; i++){
-            this.showMarker(this.state.markers[i].id)
-        }
+        // for (let i = 0 ; i < this.state.markers.length ; i++){
+        //     this.showMarker(this.state.markers[i].id)
+        // }
         this.forceUpdate()
     }
 
@@ -389,16 +573,58 @@ export default class index extends Component {
         this.forceUpdate()
     }
 
-    
+    // 初始化后端发过来的数据列表
+    init_data = () => {
+        // 初始化数据
+        // await getList().then(
+        //     res => {
+        //         console.log(res)
+        //         // 里面的坐标为wgs坐标
+        //         this.state.list = res
+        //     }
+        // ).catch(
+        //     err => {
+        //         message.error('数据加载失败')
+        //         console.log(err)
+        //     }
+        // )
+
+        // 后端传过来wgs坐标，需要将坐标转换为百度系列
+        console.log('转换前数据：', res_test_data)
+        let formatedList = []
+        for (let i = 0 ; i < res_test_data.length ; i++){
+            let profile = JSON.parse(JSON.stringify(res_test_data[i])) // 深拷贝
+            let markers = profile.content
+            profile.content = this.format_markers_wgs_to_bd(markers)
+            formatedList.push(profile)
+        }
+        console.log('转换后数据：', formatedList)
+        this.state.list = formatedList
+        this.forceUpdate()
+    }
+
+    // 将列表数据中的wgs坐标转换为百度坐标
+    format_markers_wgs_to_bd = (markers) => {
+        let new_markers = []
+        // 遍历每一个坐标
+        for (let j = 0 ; j < markers.length ; j++){
+            let marker = JSON.parse(JSON.stringify(markers[j])) // 深拷贝
+            let bd_location = wgs_to_bd(marker.lng, marker.lat)
+            marker.lng = bd_location.lng
+            marker.lat = bd_location.lat
+            new_markers.push(marker)
+        }
+        return new_markers
+    }
 
     // 获取选择的文件内容
     click_file = (id, event) => {
-        let { list, markers, map } = this.state
-        let new_markers
+        let { list, map } = this.state
 
         //先清空前面marker
         map.clearOverlays()
 
+        let new_markers = []
         // 更新缓存中markers
         for (let i = 0; i < list.length; i++) {
             let cur_id = (list[i]._id).toString()
@@ -407,15 +633,7 @@ export default class index extends Component {
                 break
             }
         }
-        // 格式化markers 便于适配交互
-        for (let i = 0; i < markers.length; i++) {
-            //markers[i] = {id: 1, name: '发射机A', show: false, icon: rador, lng: 109.91339017089847, lat: 21.085693492605827, time: '', location: '', angle: 0, size: 100}
-            new_markers[i]['show'] = true
-            new_markers[i]['icon'] = markers[i].name.indexOf('发射') != -1 ? rador : (markers[i].name.indexOf('接收机') != -1 ? acceptor : triangle)
-            new_markers[i]['size'] = markers[i].name.indexOf('发射') != -1 ? 100 : 50
-            new_markers[i]['time'] = ''
-            new_markers[i]['location'] = ''
-        }
+
         // 修改select、修改当前页面缓存
         this.setState({
             select: id,
@@ -423,29 +641,15 @@ export default class index extends Component {
         }, () => {
             // 地图上渲染新marker
             // 调整地图中心位置
-            let bd_location = wgs_to_bd(new_markers[0].lng, new_markers[0].lat)
-            map.setCenter(new window.BMapGL.Point(bd_location.lng, bd_location.lat))
+            map.setCenter(new window.BMapGL.Point(new_markers[0].lng, new_markers[0].lat))
             for (let i = 0; i < new_markers.length; i++) {
                 this.showMarker(new_markers[i].id)
             }
         })
-        // 将当前页面缓存更新到全局域
-        store.dispatch({ type: 'markers', new_markers })
-    }
 
-    // init_markers = (map) => {
-    //     let { markers } = this.state
-    //     for (let i = 0; i < markers.length; i++) {
-    //         let item = markers[i]
-    //         if (item.show) {
-    //             let photo = this.draw(item)
-    //             photo.forEach(function(e) {
-    //                 map.addOverlay(e)
-    //             });
-    //         }
-    //     }
-    //     store.dispatch({ type: 'markers', markers })
-    // }
+        // 将当前页面缓存更新到全局域
+        //store.dispatch({ type: 'markers', new_markers })
+    }
 
     // 点击左上角check，显示或者删除marker
     onChangeCheck = (e) => {
@@ -515,6 +719,13 @@ export default class index extends Component {
         }
     }
 
+    // 切换坐标的输入方式
+    switch_input_mode = () => {
+        let {input_mode} = this.state
+        this.state.input_mode = input_mode == 0 ? 1 : 0
+        this.forceUpdate()
+    }
+
 
     // 恢复拖拽前位置状态信息
     onReset = () => {
@@ -553,6 +764,15 @@ export default class index extends Component {
 
         if (index != -1){
             // 在缓存中更细当前marker信息
+
+            let lng_dfm = ToDegrees(values.lng)
+            let lat_dfm = ToDegrees(values.lat)
+
+            let arr = lng_dfm.split(",")
+            let lng = ToDigital(arr[0], arr[1], arr[2], 14)
+
+            console.log(values.lng, lng_dfm, lng)
+
             editObj.lng = values.lng
             editObj.lat = values.lat
             editObj.angle_1 = values.angle_1
@@ -753,34 +973,6 @@ export default class index extends Component {
         //this.forceUpdate()
     }
 
-
-    // 拖拽结束，跳出编辑marker页面
-    // editMarker = (event) => {
-    //     let {markers} = this.state
-    //     let clickKey = event.currentTarget.key
-    //     let arr = clickKey.split("_")
-    //     let title = arr[0]
-    //     let id = arr[1]
-    //     this.state.editObj.name = title
-    //     this.state.editObj.id = id
-    //     this.state.loading_index = 5
-    //     let theMarker = {}
-    //     for (let i = 0 ; i < markers.length ; i++){
-    //         if (markers[i].id == id){
-    //             theMarker = markers[i]
-    //             break
-    //         }
-    //     }
-
-    //     this.formRef.current.setFieldsValue({
-    //         lng: event.latLng.lng,//拖拽结束时的经度
-    //         lat: event.latLng.lat,//拖拽结束时的纬度
-    //         angle: theMarker.angle
-    //     });
-
-    //     this.forceUpdate()
-    // }
-
     // 绘制图形 [注意：传入绘制的坐标必须为百度坐标系]
     draw = (item) => {
         let {map } = this.state
@@ -827,17 +1019,6 @@ export default class index extends Component {
         })
     }
 
-
-    cancelmMarker = () => {
-        this.state.loading_index = -1
-        this.forceUpdate()
-    }
-
-    confirmMarker = () => {
-        this.state.loading_index = -1
-        this.forceUpdate()
-    }
-
     // 点击同步按钮，更新数据
     // 注意：拖拽marker后，会在拖拽结束时将bd坐标转换为wgs坐标存入markers
     submitChange = () => {
@@ -847,38 +1028,29 @@ export default class index extends Component {
 
         console.log('即将提交的数据: ', markers)
 
-        let data = this.formatData(markers)
-        //console.log('提交前数据: ', data)
+        // 和后端讨论好具体格式，可以在formatData函数修改具体数据格式
+        //let data = this.formatData(markers)
+        let data = []
 
         add(data).then(
             res => {
                 if (res.result == 1) {
-                    message.success("位置文件创建成功!")
-                    store.dispatch({ type: 'markers', data })
+                    message.success("模拟profile记录上传成功!")
+                    //store.dispatch({ type: 'markers', data })
+                    
                     // 刷新数据
-                    getList().then(
-                        res => {
-                            this.state.list = res
-                            if (res.length > 0) {
-                                this.state.select = res[0]._id.toString()
-                            }
-                            this.forceUpdate()
-                        }
-                    ).catch(
-                        err => {
-                            message.error('数据加载失败')
-                            console.log(err)
-                        }
-                    )
+                    this.init_data()
                 }
 
             }
         ).catch(
             err => {
-                message.error('操作失败')
+                message.error('模拟profile记录上传失败!')
                 console.log(err)
             }
         )
+
+
     }
 
     // 格式化存储数据

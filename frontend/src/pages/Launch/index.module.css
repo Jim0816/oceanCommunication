@@ -26,9 +26,9 @@
 .loading{
     position: absolute;
     left: calc((100% - 400px) / 2);
-    width: 400px;
+    width: 380px;
     top: 20%;
-    height: 340px;
+    height: 400px;
     background-color: white;
 }
 
@@ -44,9 +44,15 @@
     color: white;
 }
 
+.loading_switch{
+    float: left;
+    margin-top: 5px;
+    width: 100%;
+    height: 35px;
+}
+
 .loading_center{
     float: left;
-    margin-top: 20px;
     width: 100%;
     height: 220px;
 }
