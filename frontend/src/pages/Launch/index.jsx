@@ -79,7 +79,6 @@ export default class index extends Component {
             'b1-b2': 0,
             'b2-b3': 0
         },
-        input_mode: 0, // 0表示经纬度坐标格式，1表示度分秒格式
     }
 
     render() {
@@ -110,327 +109,352 @@ export default class index extends Component {
                         {/* 编辑marker的位置状态信息 */}
                         <div className={launch.loading} style={{ 'zIndex': loading_index }}>
                             <div className={launch.loading_top}>{editObj.name}</div>
-                            <div className={launch.loading_switch}>
-                            <Button style={{float: 'right'}} type="primary" icon={<SwapOutlined />} size="small" onClick={this.switch_input_mode}>切换</Button>
-                            </div>
+                            <div className={launch.loading_center}>
+                                <Form
+                                    name="basic"
+                                    labelCol={{
+                                    span: 5,
+                                    }}
+                                    wrapperCol={{
+                                    span: 16,
+                                    }}
+                                    style={{
+                                    maxWidth: 600,
+                                    }}
+                                    initialValues={{
+                                    remember: true,
+                                    }}
+                                    ref={this.formRef}
+                                    onFinish={this.onFinish}
+                                    autoComplete="off">
                             
 
-                            <div className={launch.loading_center}>
-                                {this.state.input_mode == 1 ? (
-                                    <Form
-                                        name="basic"
-                                        labelCol={{
-                                        span: 5,
-                                        }}
-                                        wrapperCol={{
-                                        span: 16,
-                                        }}
-                                        style={{
-                                        maxWidth: 600,
-                                        }}
-                                        initialValues={{
-                                        remember: true,
-                                        }}
-                                        ref={this.formRef}
-                                        onFinish={this.onFinish}
-                                        autoComplete="off">
-
-                                        {/* 经度：度分秒输入格式 */}
-                                        <Form.Item style={{marginLeft: '20px', height: '20px'}} label="位置经度">
-                                            {/* 度 */}
-                                            <Form.Item
-                                                name="lng_du"
-                                                help=""
-                                                style={{
-                                                    display: 'inline-block',
-                                                    width: '60px',
-                                                }}>
-                                                <InputNumber
-                                                    style={{
-                                                    width: 60,
-                                                    }}
-                                                    min="0"
-                                                    max="360"
-                                                    step="1"
-                                                    stringMode
-                                                />
-                                            </Form.Item>
-                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>度</span>
-
-                                            {/* 分 */}
-                                            <Form.Item
-                                                name="lng_fen"
-                                                help=""
-                                                style={{
-                                                display: 'inline-block',
-                                                width: '60px',
-                                                }}>
-                                                <InputNumber
-                                                    style={{
-                                                    width: 60,
-                                                    }}
-                                                    min="0"
-                                                    max="360"
-                                                    step="1"
-                                                    stringMode/>
-                                            </Form.Item>
-                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>分</span>
-
-                                            {/* 秒 */}
-                                            <Form.Item
-                                                name="lng_miao"
-                                                help=""
-                                                style={{
-                                                display: 'inline-block',
-                                                width: '60px',
-                                                }}>
-                                                <InputNumber
-                                                    style={{
-                                                    width: 60,
-                                                    }}
-                                                    min="0"
-                                                    max="360"
-                                                    step="1"
-                                                    stringMode/>
-                                            </Form.Item>
-                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>秒</span>
-                                        </Form.Item>
-
-                                        {/* 纬度：度分秒输入格式 */}
-                                        <Form.Item style={{marginLeft: '20px', height: '20px'}} label="位置经度">
-                                            {/* 度 */}
-                                            <Form.Item
-                                                name="lat_du"
-                                                help=""
-                                                style={{
-                                                    display: 'inline-block',
-                                                    width: '60px',
-                                                }}>
-                                                <InputNumber
-                                                    style={{
-                                                    width: 60,
-                                                    }}
-                                                    min="0"
-                                                    max="360"
-                                                    step="1"
-                                                    stringMode
-                                                />
-                                            </Form.Item>
-                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>度</span>
-
-                                            {/* 分 */}
-                                            <Form.Item
-                                                name="lat_fen"
-                                                help=""
-                                                style={{
-                                                display: 'inline-block',
-                                                width: '60px',
-                                                }}>
-                                                <InputNumber
-                                                    style={{
-                                                    width: 60,
-                                                    }}
-                                                    min="0"
-                                                    max="360"
-                                                    step="1"
-                                                    stringMode/>
-                                            </Form.Item>
-                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>分</span>
-
-                                            {/* 秒 */}
-                                            <Form.Item
-                                                name="lat_miao"
-                                                help=""
-                                                style={{
-                                                display: 'inline-block',
-                                                width: '60px',
-                                                }}>
-                                                <InputNumber
-                                                    style={{
-                                                    width: 60,
-                                                    }}
-                                                    min="0"
-                                                    max="360"
-                                                    step="1"
-                                                    stringMode/>
-                                            </Form.Item>
-                                            <span style={{display: 'inline-block', width: '20px', lineHeight: '32px', textAlign: 'center'}}>秒</span>
-                                        </Form.Item>
-
-                                        {/*  箭头角度 */}
+                                    {/*  位置经度 */}
+                                    <Form.Item
+                                        style={{height: '40px', width: '680px'}}
+                                        label="位置经度"
+                                    >
+                                        {/* 经度 */}
                                         <Form.Item
-                                            style={{marginLeft: '20px', height: '20px'}}
-                                            label="箭头角度"
-                                            name="angle_1"
-                                            rules={[
-                                                {
-                                                required: true,
-                                                message: '请输入正北顺时针方向夹角！',
-                                                },
-                                            ]}
-                                            >
-                                            <InputNumber
-                                                style={{width: 240,}}
-                                                min="0"
-                                                max="360"
-                                                step="1"
-                                                value={editObj.angle_1}
-                                                stringMode
-                                            />
-                                        </Form.Item>
-
-                                        {/*  扇形角度 */}
-                                        <Form.Item
-                                            style={{marginLeft: '20px', height: '20px'}}
-                                            label="扇形角度"
-                                            name="angle_2"
-                                            rules={[
-                                                {
-                                                required: true,
-                                                message: '请输入正北顺时针方向夹角！',
-                                                },
-                                            ]}
-                                            >
-                                            <InputNumber
-                                                style={{
-                                                width: 240,
-                                                }}
-                                                min="0"
-                                                max="360"
-                                                step="1"
-                                                value={editObj.angle_2}
-                                                stringMode
-                                            />
-                                        </Form.Item>
-
-                                        {/*  底部按钮 */}
-                                        <Form.Item {...tailLayout}>
-                                            <Button type="primary" htmlType="submit">确认</Button>
-                                            <Button htmlType="button" onClick={this.onReset}>返回</Button>
-                                        </Form.Item>
-                                    </Form>
-                                ) : (
-                                    <Form
-                                        name="basic"
-                                        labelCol={{
-                                        span: 5,
-                                        }}
-                                        wrapperCol={{
-                                        span: 16,
-                                        }}
-                                        style={{
-                                        maxWidth: 600,
-                                        }}
-                                        initialValues={{
-                                        remember: true,
-                                        }}
-                                        ref={this.formRef}
-                                        onFinish={this.onFinish}
-                                        autoComplete="off">
-                                
-
-                                        {/*  位置经度 */}
-                                        <Form.Item
-                                            style={{marginLeft: '20px', height: '20px'}}
-                                            label="位置经度"
                                             name="lng"
                                             rules={[
-                                                {
+                                            {
                                                 required: true,
-                                                message: '请输入当前位置的经度!',
-                                                },
+                                                message: "经度必填"
+                                            },
                                             ]}
-                                            >
+                                            style={{
+                                            display: 'inline-block',
+                                            width: '180px',
+                                            }}
+                                        >
                                             <InputNumber
                                                 style={{
-                                                width: 250,
+                                                width: 180,
                                                 }}
                                                 min="0"
                                                 max="300"
                                                 step="0.00000000001"
                                                 value={editObj.lng}
+                                                controls={false}
+                                                onChange={ e => this.onChangeInput(e, 'lng')}
                                                 stringMode
                                             />
                                         </Form.Item>
 
-                                        {/*  位置纬度 */}
+                                         {/* 度 */}
                                         <Form.Item
-                                            style={{marginLeft: '20px', height: '20px'}}
-                                            label="位置纬度"
-                                            name="lat"
+                                            name="lng_du"
                                             rules={[
-                                                {
+                                            {
                                                 required: true,
-                                                message: '请输入当前位置的经度!',
-                                                },
+                                                message: "度必填"
+                                            },
                                             ]}
-                                            >
+                                            style={{
+                                                display: 'inline-block',
+                                                width: '80px',
+                                                marginLeft: '20px',
+                                            }}
+                                        >
                                             <InputNumber
                                                 style={{
-                                                width: 250,
+                                                    left: 10,
+                                                    width: 80,
+                                                }}
+                                                min="0"
+                                                max="99999999"
+                                                step="0.001"
+                                                value={editObj.lng}
+                                                stringMode
+                                                controls={false}
+                                                onChange={ e => this.onChangeInput(e, 'lng_du')}
+                                                placeholder="度"
+                                            />
+                                        </Form.Item>
+                                      
+                                        {/* 分 */}
+                                        <Form.Item
+                                            name="lng_fen"
+                                            rules={[
+                                            {
+                                                required: true,
+                                                message: "分必填"
+                                            },
+                                            ]}
+                                            style={{
+                                                display: 'inline-block',
+                                                width: '80px',
+                                                marginLeft: '5px',
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{
+                                                    left: 10,
+                                                    width: 80,
+                                                }}
+                                                min="0"
+                                                max="99999999"
+                                                step="0.001"
+                                                value={editObj.lng}
+                                                stringMode
+                                                controls={false}
+                                                onChange={ e => this.onChangeInput(e, 'lng_fen')}
+                                                placeholder="分"
+                                            />
+                                        </Form.Item>
+
+                                        {/* 秒 */}
+                                        <Form.Item
+                                            name="lng_miao"
+                                            rules={[
+                                            {
+                                                required: true,
+                                                message: "秒必填"
+                                            },
+                                            ]}
+                                            style={{
+                                                display: 'inline-block',
+                                                width: '80px',
+                                                marginLeft: '5px'
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{
+                                                    left: 10,
+                                                    width: 80,
+                                                }}
+                                                min="0"
+                                                max="99999999"
+                                                step="0.001"
+                                                value={editObj.lng}
+                                                stringMode
+                                                controls={false}
+                                                onChange={ e => this.onChangeInput(e, 'lng_miao')}
+                                                placeholder="秒"
+                                            />
+                                        </Form.Item>
+                                    </Form.Item>
+
+                                    
+
+                                    {/*  位置纬度 */}
+                                    <Form.Item
+                                        style={{height: '40px', width: '680px'}}
+                                        label="位置纬度"
+                                    >
+                                        {/* 纬度 */}
+                                        <Form.Item
+                                            name="lat"
+                                            rules={[
+                                            {
+                                                required: true,
+                                                message: "纬度必填"
+                                            },
+                                            ]}
+                                            style={{
+                                            display: 'inline-block',
+                                            width: '180px',
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{
+                                                width: 180,
                                                 }}
                                                 min="0"
                                                 max="300"
                                                 step="0.00000000001"
-                                                value={editObj.lat}
+                                                value={editObj.lng}
+                                                controls={false}
+                                                onChange={ e => this.onChangeInput(e, 'lat')}
                                                 stringMode
                                             />
                                         </Form.Item>
 
-                                        {/*  箭头角度 */}
+                                         {/* 度 */}
                                         <Form.Item
-                                            style={{marginLeft: '20px', height: '20px'}}
-                                            label="箭头角度"
+                                            name="lat_du"
+                                            rules={[
+                                            {
+                                                required: true,
+                                                message: "度必填"
+                                            },
+                                            ]}
+                                            style={{
+                                                display: 'inline-block',
+                                                width: '80px',
+                                                marginLeft: '20px',
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{
+                                                    left: 10,
+                                                    width: 80,
+                                                }}
+                                                min="0"
+                                                max="99999999"
+                                                step="0.001"
+                                                value={editObj.lng}
+                                                stringMode
+                                                controls={false}
+                                                onChange={ e => this.onChangeInput(e, 'lat_du')}
+                                                placeholder="度"
+                                            />
+                                        </Form.Item>
+                                      
+                                        {/* 分 */}
+                                        <Form.Item
+                                            name="lat_fen"
+                                            rules={[
+                                            {
+                                                required: true,
+                                                message: "分必填"
+                                            },
+                                            ]}
+                                            style={{
+                                                display: 'inline-block',
+                                                width: '80px',
+                                                marginLeft: '5px',
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{
+                                                    left: 10,
+                                                    width: 80,
+                                                }}
+                                                min="0"
+                                                max="99999999"
+                                                step="0.001"
+                                                value={editObj.lng}
+                                                stringMode
+                                                controls={false}
+                                                onChange={ e => this.onChangeInput(e, 'lat_fen')}
+                                                placeholder="分"
+                                            />
+                                        </Form.Item>
+
+                                        {/* 秒 */}
+                                        <Form.Item
+                                            name="lat_miao"
+                                            rules={[
+                                            {
+                                                required: true,
+                                                message: "秒必填"
+                                            },
+                                            ]}
+                                            style={{
+                                                display: 'inline-block',
+                                                width: '80px',
+                                                marginLeft: '5px'
+                                            }}
+                                        >
+                                            <InputNumber
+                                                style={{
+                                                    left: 10,
+                                                    width: 80,
+                                                }}
+                                                min="0"
+                                                max="99999999"
+                                                step="0.001"
+                                                value={editObj.lng}
+                                                stringMode
+                                                controls={false}
+                                                placeholder="秒"
+                                                onChange={ e => this.onChangeInput(e, 'lat_miao')}
+                                            />
+                                        </Form.Item> 
+                                    </Form.Item>
+
+                                    {/*  角度 */}
+                                    <Form.Item
+                                        style={{height: '40px', width: '680px'}}
+                                        label="角度"
+                                    >
+                                       {/*  箭头角度 */}
+                                       <Form.Item
                                             name="angle_1"
                                             rules={[
-                                                {
+                                            {
                                                 required: true,
-                                                message: '请输入正北顺时针方向夹角！',
-                                                },
+                                                message: "纬度必填"
+                                            },
                                             ]}
-                                            >
+                                            style={{
+                                            display: 'inline-block',
+                                            width: '180px',
+                                            }}
+                                        >
                                             <InputNumber
-                                                style={{width: 240,}}
+                                                style={{
+                                                width: 100,
+                                                }}
                                                 min="0"
                                                 max="360"
-                                                step="1"
+                                                step="0.01"
                                                 value={editObj.angle_1}
+                                                controls={false}
                                                 stringMode
                                             />
+                                            <label style={{marginLeft: '10px'}}>箭头角度</label>
                                         </Form.Item>
 
                                         {/*  扇形角度 */}
                                         <Form.Item
-                                            style={{marginLeft: '20px', height: '20px'}}
-                                            label="扇形角度"
                                             name="angle_2"
                                             rules={[
-                                                {
+                                            {
                                                 required: true,
-                                                message: '请输入正北顺时针方向夹角！',
-                                                },
+                                                message: "纬度必填"
+                                            },
                                             ]}
-                                            >
+                                            style={{
+                                            display: 'inline-block',
+                                            width: '180px',
+                                            marginLeft: '30px'
+                                            }}
+                                        >
                                             <InputNumber
                                                 style={{
-                                                width: 240,
+                                                width: 100,
                                                 }}
                                                 min="0"
                                                 max="360"
-                                                step="1"
+                                                step="0.01"
                                                 value={editObj.angle_2}
+                                                controls={false}
                                                 stringMode
                                             />
+                                            <label style={{marginLeft: '10px'}}>箭头角度</label>
                                         </Form.Item>
 
-                                        {/*  底部按钮 */}
-                                        <Form.Item {...tailLayout}>
-                                            <Button type="primary" htmlType="submit">确认</Button>
-                                            <Button htmlType="button" onClick={this.onReset}>返回</Button>
-                                        </Form.Item>
-                                    </Form>
-                                )
-                                }
+                                    </Form.Item>
+
+                                    {/*  底部按钮 */}
+                                    <Form.Item {...tailLayout} style={{ height: '40px', width: '620px'}}>
+                                        <Button type="primary" htmlType="submit" style={{marginLeft: '55px'}}>确认</Button>
+                                        <Button htmlType="button" onClick={this.onReset}>返回</Button>
+                                    </Form.Item>
+                                </Form>
                             </div>
                         </div>
 
@@ -719,14 +743,6 @@ export default class index extends Component {
         }
     }
 
-    // 切换坐标的输入方式
-    switch_input_mode = () => {
-        let {input_mode} = this.state
-        this.state.input_mode = input_mode == 0 ? 1 : 0
-        this.forceUpdate()
-    }
-
-
     // 恢复拖拽前位置状态信息
     onReset = () => {
         this.state.loading_index = -1
@@ -749,6 +765,58 @@ export default class index extends Component {
         this.forceUpdate()
     }
 
+    // 输入框改变后，需要实时显示两类坐标：度分秒
+    onChangeInput = (e, type) => {
+        console.log(e, type)
+
+        
+
+        if (type == 'lng'){
+            // 经度修改，需要更新对应的度分秒
+            let lng_dfm = ToDegrees(e)
+            let arr = lng_dfm.split(",")
+            
+            //console.log(values.lng, lng_dfm, lng)
+            this.formRef.current.setFieldsValue({
+                lng_du: arr[0],
+                lng_fen: arr[1],
+                lng_miao: arr[2]
+            });
+
+        }else if (type == 'lng_du' || type == 'lng_fen' || type == 'lng_miao'){
+            let d = this.formRef.current.getFieldValue("lng_du")
+            let f = this.formRef.current.getFieldValue("lng_fen")
+            let m = this.formRef.current.getFieldValue("lng_miao")
+
+            if (d != "" && f != "" && m != ""){
+                this.formRef.current.setFieldsValue({
+                    lng: ToDigital(d, f, m, 14)
+                });
+            }
+        }else if (type == 'lat'){
+            // 纬度修改，需要更新对应的度分秒
+            let lat_dfm = ToDegrees(e)
+            let arr = lat_dfm.split(",")
+            this.formRef.current.setFieldsValue({
+                lat_du: arr[0],
+                lat_fen: arr[1],
+                lat_miao: arr[2]
+            });
+        }else if (type == 'lat_du' || type == 'lat_fen' || type == 'lat_miao'){
+            let d = this.formRef.current.getFieldValue("lat_du")
+            let f = this.formRef.current.getFieldValue("lat_fen")
+            let m = this.formRef.current.getFieldValue("lat_miao")
+
+            if (d != "" && f != "" && m != ""){
+                this.formRef.current.setFieldsValue({
+                    lat: ToDigital(d, f, m, 14)
+                });
+            }
+        }
+
+        this.forceUpdate()
+    }
+
     // 用户点击确认后，更新前端缓存的当前marker状态信息（注意，还没有提交后台）
     onFinish = (values) => {
         this.state.loading_index = -1
@@ -764,15 +832,6 @@ export default class index extends Component {
 
         if (index != -1){
             // 在缓存中更细当前marker信息
-
-            let lng_dfm = ToDegrees(values.lng)
-            let lat_dfm = ToDegrees(values.lat)
-
-            let arr = lng_dfm.split(",")
-            let lng = ToDigital(arr[0], arr[1], arr[2], 14)
-
-            console.log(values.lng, lng_dfm, lng)
-
             editObj.lng = values.lng
             editObj.lat = values.lat
             editObj.angle_1 = values.angle_1
@@ -843,6 +902,7 @@ export default class index extends Component {
         this.forceUpdate()
     }
 
+    // 双击后弹出编辑框，需要把数据渲染到表单
     endMoveMarkerLocation = (e) => {
         let {map, editObj} = this.state
         console.log(map.getDefaultCursor())
@@ -851,9 +911,22 @@ export default class index extends Component {
         map.removeEventListener('mousemove', this.moveMarkerLocation);
         this.state.loading_index = 5
         
+
+
+        let lng_dfm = ToDegrees(editObj.lng)
+        let lat_dfm = ToDegrees(editObj.lat)
+        let lng_arr = lng_dfm.split(",")
+        let lat_arr = lat_dfm.split(",")
+
         this.formRef.current.setFieldsValue({
             lng: editObj.lng,//拖拽结束时的经度
+            lng_du: lng_arr[0],
+            lng_fen: lng_arr[1],
+            lng_miao: lng_arr[2],
             lat: editObj.lat,//拖拽结束时的纬度
+            lat_du: lat_arr[0],
+            lat_fen: lat_arr[1],
+            lat_miao: lat_arr[2],
             angle_1: editObj.angle_1,
             angle_2: editObj.angle_2
         });
